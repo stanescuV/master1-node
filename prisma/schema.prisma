@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -13,6 +7,127 @@ datasource db {
   provider = "postgresql"
 }
 
-model TestUser {
-  id    Int     @id @default(autoincrement())
+////////////////////
+// ENUMS
+////////////////////
+
+enum Role {
+  USER
+  ADMIN
+  ORGANIZER
+}
+
+enum TournamentFormat {
+  SOLO
+  TEAM
+}
+
+enum TournamentStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+////////////////////
+// MODELS
+////////////////////
+
+// -------- USERS --------
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      Role
+
+  // Team membership (many users -> one team)
+  teamId    Int?
+  team      Team?    @relation("TeamMembers", fields: [teamId], references: [id])
+
+  // Captain of teams (one user -> many teams)
+  captainOf Team[]   @relation("TeamCaptain")
+
+  organizedTournaments Tournament[] @relation("Organizer")
+  registrations Registration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+////////////////////////////////////////////////////////////
+
+// -------- TOURNAMENTS --------
+model Tournament {
+  id              Int               @id @default(autoincrement())
+  name            String
+  game            String
+  format          TournamentFormat
+  maxParticipants Int
+  prizePool       Float
+  startDate       DateTime
+  endDate         DateTime
+  status          TournamentStatus
+
+  registersAsTeam Boolean
+
+  organizerId Int
+  organizer   User @relation("Organizer", fields: [organizerId], references: [id])
+
+  registrations Registration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+////////////////////////////////////////////////////////////
+
+// -------- TEAMS --------
+model Team {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  tag       String  @unique
+
+  // One team -> one captain
+  captainId Int
+  captain   User    @relation("TeamCaptain", fields: [captainId], references: [id])
+
+  // One team -> many members
+  members   User[]  @relation("TeamMembers")
+
+  registrations Registration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+////////////////////////////////////////////////////////////
+
+// -------- REGISTRATIONS --------
+model Registration {
+  id            Int      @id @default(autoincrement())
+
+  tournamentId  Int
+  tournament    Tournament @relation(fields: [tournamentId], references: [id])
+
+  // SOLO registration
+  playerId      Int?
+  player        User?    @relation(fields: [playerId], references: [id])
+
+  // TEAM registration
+  teamId        Int?
+  team          Team?    @relation(fields: [teamId], references: [id])
+
+  status        RegistrationStatus
+
+  registeredAt  DateTime @default(now())
+  confirmedAt   DateTime?
+
+  @@index([tournamentId])
 }
