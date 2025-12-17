@@ -1,5 +1,6 @@
 import {prisma} from "./prisma/prisma"
 
+
 //test pour verifier si tout marche et je n'ai pas foutu en l'air la base de donnée
 async function main() {
   console.log("🚀 Prisma test started");
@@ -10,7 +11,7 @@ async function main() {
       email: "captain@test.com",
       username: "captain",
       password: "hashed_password",
-      role: "USER",
+      role: "PLAYER",
     },
   });
 
@@ -19,13 +20,13 @@ async function main() {
       email: "member@test.com",
       username: "member",
       password: "hashed_password",
-      role: "USER",
+      role: "PLAYER",
     },
   });
 
   console.log("✅ Users created");
 
-  // 2️⃣ Create team with captain
+  // 2️⃣ Create a team with a captain
   const team = await prisma.team.create({
     data: {
       name: "Alpha Team",
@@ -36,7 +37,7 @@ async function main() {
 
   console.log("✅ Team created");
 
-  // 3️⃣ Add member to team
+  // 3️⃣ Assign member to the team
   await prisma.user.update({
     where: { id: member.id },
     data: {
@@ -46,7 +47,7 @@ async function main() {
 
   console.log("✅ Member added to team");
 
-  // 4️⃣ Create tournament
+  // 4️⃣ Create a tournament
   const tournament = await prisma.tournament.create({
     data: {
       name: "Winter Cup",
@@ -56,7 +57,7 @@ async function main() {
       prizePool: 1000,
       startDate: new Date("2025-12-01"),
       endDate: new Date("2025-12-05"),
-      status: "UPCOMING",
+      status: "OPEN",
       registersAsTeam: true,
       organizerId: captain.id,
     },
@@ -64,8 +65,8 @@ async function main() {
 
   console.log("✅ Tournament created");
 
-  // 5️⃣ Register team
-  const registration = await prisma.registration.create({
+  // 5️⃣ Register the team for the tournament
+  await prisma.registration.create({
     data: {
       tournamentId: tournament.id,
       teamId: team.id,
@@ -75,7 +76,7 @@ async function main() {
 
   console.log("✅ Team registered");
 
-  // 6️⃣ Fetch everything with relations
+  // 6️⃣ Fetch the team with all relations
   const result = await prisma.team.findUnique({
     where: { id: team.id },
     include: {
@@ -94,8 +95,8 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
-    console.error("❌ Error:", e);
+  .catch((error) => {
+    console.error("❌ Prisma test failed:", error);
   })
   .finally(async () => {
     await prisma.$disconnect();

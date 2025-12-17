@@ -11,10 +11,10 @@ datasource db {
 // ENUMS
 ////////////////////
 
-enum Role {
-  USER
-  ADMIN
+enum UserRole {
+  PLAYER
   ORGANIZER
+  ADMIN
 }
 
 enum TournamentFormat {
@@ -23,7 +23,8 @@ enum TournamentFormat {
 }
 
 enum TournamentStatus {
-  UPCOMING
+  DRAFT
+  OPEN
   ONGOING
   COMPLETED
   CANCELED
@@ -33,6 +34,7 @@ enum RegistrationStatus {
   PENDING
   CONFIRMED
   REJECTED
+  WITHDRAWN
 }
 
 ////////////////////
@@ -45,7 +47,7 @@ model User {
   email     String   @unique
   username  String   @unique
   password  String
-  role      Role
+  role      UserRole
 
   // Team membership (many users -> one team)
   teamId    Int?
