@@ -45,7 +45,7 @@ thunder-tests/
 Thumbs.db
 
 /src/generated/prisma
-
+/src/generated
 # Database
 *.db
 *.db-journal
