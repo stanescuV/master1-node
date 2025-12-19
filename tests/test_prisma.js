@@ -1,6 +1,5 @@
 // import prisma from "./src/config/prisma.js";
 
-
 // //test pour verifier si tout marche et je n'ai pas foutu en l'air la base de donnée
 // async function main() {
 //   console.log("🚀 Prisma test started");
@@ -102,11 +101,11 @@
 //     await prisma.$disconnect();
 //   });
 
-import prisma from "./src/config/prisma.js";
+import prisma from '../src/config/prisma.js';
 
 // Test READ : récupérer tous les users
 async function main() {
-  console.log("📖 Prisma READ test started");
+  console.log('📖 Prisma READ test started');
 
   const users = await prisma.user.findMany();
 
@@ -116,7 +115,7 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error("❌ Prisma READ test failed:", error);
+    console.error('❌ Prisma READ test failed:', error);
   })
   .finally(async () => {
     await prisma.$disconnect();
