@@ -1,14 +1,14 @@
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "./src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 ////////////////////
-// ENUMS
+//ENUMS
 ////////////////////
 
 enum UserRole {
@@ -38,10 +38,9 @@ enum RegistrationStatus {
 }
 
 ////////////////////
-// MODELS
+//MODELS
 ////////////////////
 
-// -------- USERS --------
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -63,9 +62,6 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-////////////////////////////////////////////////////////////
-
-// -------- TOURNAMENTS --------
 model Tournament {
   id              Int               @id @default(autoincrement())
   name            String
@@ -88,9 +84,6 @@ model Tournament {
   updatedAt DateTime @updatedAt
 }
 
-////////////////////////////////////////////////////////////
-
-// -------- TEAMS --------
 model Team {
   id        Int     @id @default(autoincrement())
   name      String  @unique
@@ -109,9 +102,6 @@ model Team {
   updatedAt DateTime @updatedAt
 }
 
-////////////////////////////////////////////////////////////
-
-// -------- REGISTRATIONS --------
 model Registration {
   id            Int      @id @default(autoincrement())
 
