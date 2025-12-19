@@ -1,0 +1,65 @@
+<%- include('../../partials/head', { title: 'Liste des jeux' }) %>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../../partials/header') %>
+
+  <main class="container mx-auto py-8 px-4 grow">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">Liste des jeux</h1>
+      <% if (user) { %>
+        <a href="/games/new" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg inline-flex items-center gap-2 transition-colors">
+          <%- icon('Plus', { size: 20 }) %>
+          Ajouter un jeu
+        </a>
+      <% } %>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% games.forEach(game => { %>
+        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <h2 class="text-xl font-semibold text-gray-800 mb-2"><%= game.name %></h2>
+          <span class="inline-block bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full mb-3">
+            <%= game.genre %>
+          </span>
+          <p class="text-gray-600 text-sm mb-3">
+            <span class="font-medium">Joueurs:</span> <%= game.minPlayers %> - <%= game.maxPlayers %>
+          </p>
+          <% if (game.description) { %>
+            <p class="text-gray-500 text-sm mb-4 line-clamp-2"><%= game.description %></p>
+          <% } %>
+          <div class="flex justify-between items-center">
+            <a href="/games/<%= game.id %>" class="inline-flex items-center gap-1 text-blue-500 hover:text-blue-700 font-medium">
+              Voir details <%- icon('ArrowRight', { size: 16 }) %>
+            </a>
+            <% if (user) { %>
+              <div class="flex gap-2">
+                <a href="/games/<%= game.id %>/edit" class="text-gray-500 hover:text-blue-500 cursor-pointer" title="Modifier">
+                  <%- icon('Pencil', { size: 18 }) %>
+                </a>
+                <button type="button" onclick="openDeleteModal(<%= game.id %>, this, '/games')" data-name="<%= game.name %>" class="text-gray-500 hover:text-red-500 cursor-pointer" title="Supprimer">
+                  <%- icon('Trash2', { size: 18 }) %>
+                </button>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+    <% if (games.length === 0) { %>
+      <div class="text-center py-12">
+        <p class="text-gray-500 text-lg">Aucun jeu disponible pour le moment.</p>
+        <% if (user) { %>
+          <a href="/games/new" class="inline-block mt-4 text-blue-500 hover:text-blue-700">
+            Ajouter votre premier jeu
+          </a>
+        <% } %>
+      </div>
+    <% } %>
+  </main>
+
+  <%- include('../../partials/deleteModal', { itemType: 'le jeu' }) %>
+
+  <%- include('../../partials/footer') %>
+</body>
+</html>

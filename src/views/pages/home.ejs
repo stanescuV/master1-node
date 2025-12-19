@@ -1,0 +1,56 @@
+<%- include('../partials/head', { title: 'Accueil' }) %>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../partials/header') %>
+
+  <main class="container mx-auto py-8 px-4 grow">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800 mb-4">Bienvenue au LAN Party Manager</h1>
+      <p class="text-xl text-gray-600">Gerez vos jeux et stations de gaming</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <a href="/games" class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
+        <div class="text-center">
+          <div class="flex justify-center mb-4 text-blue-500">
+            <%- icon('Gamepad2', { size: 64 }) %>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Games</h2>
+          <p class="text-gray-600 mb-4">Parcourez les jeux disponibles</p>
+          <span class="inline-block bg-blue-500 text-white px-4 py-2 rounded-full font-semibold">
+            <%= gamesCount %> jeux
+          </span>
+        </div>
+      </a>
+
+      <a href="/stations" class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
+        <div class="text-center">
+          <div class="flex justify-center mb-4 text-green-500">
+            <%- icon('Server', { size: 64 }) %>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Stations</h2>
+          <p class="text-gray-600 mb-4">Decouvrez les postes gaming</p>
+          <span class="inline-block bg-green-500 text-white px-4 py-2 rounded-full font-semibold">
+            <%= stationsCount %> stations
+          </span>
+        </div>
+      </a>
+
+      <a href="/bookings" class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow">
+        <div class="text-center">
+          <div class="flex justify-center mb-4 text-purple-500">
+            <%- icon('Calendar', { size: 64 }) %>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2">Reservations</h2>
+          <p class="text-gray-600 mb-4">Gerez vos reservations</p>
+          <span class="inline-block bg-purple-500 text-white px-4 py-2 rounded-full font-semibold">
+            <%= bookingsCount %> reservations
+          </span>
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

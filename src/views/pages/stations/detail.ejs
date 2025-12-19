@@ -1,0 +1,73 @@
+<%- include('../../partials/head', { title: station.name }) %>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../../partials/header') %>
+
+  <main class="container mx-auto py-8 px-4 grow">
+    <a href="/stations" class="inline-flex items-center gap-1 text-blue-500 hover:text-blue-700 mb-6">
+      <%- icon('ArrowLeft', { size: 18 }) %>
+      Retour a la liste
+    </a>
+
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
+      <div class="flex justify-between items-start mb-6">
+        <h1 class="text-3xl font-bold text-gray-800"><%= station.name %></h1>
+        <span class="px-4 py-2 rounded-full text-sm font-medium
+          <%= station.status === 'available' ? 'bg-green-100 text-green-800' :
+              station.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800' %>">
+          <%= station.status %>
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Specifications</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">CPU</span>
+              <span class="text-gray-800 font-medium"><%= station.cpu %></span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">GPU</span>
+              <span class="text-gray-800 font-medium"><%= station.gpu %></span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">RAM</span>
+              <span class="text-gray-800 font-medium"><%= station.ram %></span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Stockage</span>
+              <span class="text-gray-800 font-medium"><%= station.storage %></span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Peripheriques</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Moniteur</span>
+              <span class="text-gray-800 font-medium"><%= station.monitor %></span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Clavier</span>
+              <span class="text-gray-800 font-medium"><%= station.keyboard %></span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Souris</span>
+              <span class="text-gray-800 font-medium"><%= station.mouse %></span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-600">Casque</span>
+              <span class="text-gray-800 font-medium"><%= station.headset %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('../../partials/footer') %>
+</body>
+</html>
