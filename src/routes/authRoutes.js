@@ -90,7 +90,6 @@ import { authenticate } from '../middlewares/authenticate.js'
  *       scheme: bearer
  *       bearerFormat: JWT
  */
-
 const router = Router()
 
 /**
