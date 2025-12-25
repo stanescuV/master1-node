@@ -2,10 +2,7 @@ import { z } from 'zod'
 
 export const registrationSchema = z
   .object({
-    tournamentId: z.coerce
-      .number({ required_error: 'Le tournoi est requis' })
-      .int()
-      .positive(),
+    tournamentId: z.coerce.number().int().positive(),
 
     playerId: z.coerce.number().int().positive().optional(),
 
@@ -29,3 +26,12 @@ export const registrationSchema = z
       path: ['playerId'],
     }
   )
+
+/**
+ * Used for PATCH status only
+ */
+export const registrationStatusSchema = z.object({
+  status: z.enum(['PENDING', 'CONFIRMED', 'REJECTED', 'WITHDRAWN'], {
+    required_error: 'Le statut est requis',
+  }),
+})
