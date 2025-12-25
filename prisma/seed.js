@@ -7,6 +7,12 @@ async function main() {
   // Password
   const hashedPassword = await bcrypt.hash('P@ssw0rd', 10)
 
+  // CLEAN DATABASE (order matters)
+  await prisma.registration.deleteMany()
+  await prisma.team.deleteMany()
+  await prisma.tournament.deleteMany()
+  await prisma.user.deleteMany()
+
   // USERS
   const usersData = [
     {
@@ -41,31 +47,17 @@ async function main() {
     },
   ]
 
-  
-  // CLEAN DATABASE (order matters)
-  
-  await prisma.registration.deleteMany()
-  await prisma.team.deleteMany()
-  await prisma.tournament.deleteMany()
-  await prisma.user.deleteMany()
-
-  
-  // CREATE USERS
-  
   await prisma.user.createMany({ data: usersData })
   console.log(`👤 Created ${usersData.length} users (password: P@ssw0rd)`)
 
   const users = await prisma.user.findMany()
 
-  const admin = users.find(u => u.username === 'admin')
   const organizer = users.find(u => u.username === 'organizer1')
   const player1 = users.find(u => u.username === 'player1')
   const player2 = users.find(u => u.username === 'player2')
   const player3 = users.find(u => u.username === 'player3')
 
-  
   // TEAMS
-  
   const teamAlpha = await prisma.team.create({
     data: {
       name: 'Alpha Squad',
@@ -93,9 +85,7 @@ async function main() {
 
   console.log('👥 Created teams')
 
-  
   // TOURNAMENTS
-  
   const now = new Date()
 
   const soloTournament = await prisma.tournament.create({
@@ -108,7 +98,6 @@ async function main() {
       startDate: new Date(now.getTime() + 24 * 60 * 60 * 1000),
       endDate: new Date(now.getTime() + 48 * 60 * 60 * 1000),
       status: 'OPEN',
-      registersAsTeam: false,
       organizerId: organizer.id,
     },
   })
@@ -123,18 +112,15 @@ async function main() {
       startDate: new Date(now.getTime() + 72 * 60 * 60 * 1000),
       endDate: new Date(now.getTime() + 96 * 60 * 60 * 1000),
       status: 'OPEN',
-      registersAsTeam: true,
       organizerId: organizer.id,
     },
   })
 
   console.log('🏆 Created tournaments')
 
-  
   // REGISTRATIONS
-  
   const registrations = [
-    // SOLO registrations
+    // SOLO
     {
       tournamentId: soloTournament.id,
       playerId: player1.id,
@@ -147,7 +133,7 @@ async function main() {
       status: 'PENDING',
     },
 
-    // TEAM registrations
+    // TEAM
     {
       tournamentId: teamTournament.id,
       teamId: teamAlpha.id,
@@ -170,7 +156,7 @@ async function main() {
 main()
   .catch(error => {
     console.error(error)
-    throw new Error('❌ Seeding failed')
+    process.exit(1)
   })
   .finally(async () => {
     await prisma.$disconnect()

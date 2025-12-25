@@ -1,16 +1,11 @@
 generator client {
   provider = "prisma-client"
-  output   = "/src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
 }
-
-////////////////////
-//ENUMS
-////////////////////
-
 enum UserRole {
   PLAYER
   ORGANIZER
@@ -37,33 +32,23 @@ enum RegistrationStatus {
   WITHDRAWN
 }
 
-////////////////////
-//MODELS
-////////////////////
-
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String   @unique
-  password  String
-  role      UserRole
-
-  // Team membership (many users -> one team)
-  teamId    Int?
-  team      Team?    @relation("TeamMembers", fields: [teamId], references: [id])
-
-  // Captain of teams (one user -> many teams)
-  captainOf Team[]   @relation("TeamCaptain")
-
-  organizedTournaments Tournament[] @relation("Organizer")
-  registrations Registration[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   Int            @id @default(autoincrement())
+  email                String         @unique
+  username             String         @unique
+  password             String
+  role                 UserRole       @default(PLAYER)
+  teamId               Int?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  registrations        Registration[]
+  captainOf            Team[]         @relation("TeamCaptain")
+  organizedTournaments Tournament[]   @relation("Organizer")
+  team                 Team?          @relation("TeamMembers", fields: [teamId], references: [id])
 }
 
 model Tournament {
-  id              Int               @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   name            String
   game            String
   format          TournamentFormat
@@ -71,55 +56,39 @@ model Tournament {
   prizePool       Float
   startDate       DateTime
   endDate         DateTime
-  status          TournamentStatus
-
-  registersAsTeam Boolean
-
-  organizerId Int
-  organizer   User @relation("Organizer", fields: [organizerId], references: [id])
-
-  registrations Registration[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status          TournamentStatus @default(DRAFT)
+  organizerId     Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  registrations   Registration[]
+  organizer       User             @relation("Organizer", fields: [organizerId], references: [id])
 }
 
 model Team {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique
-  tag       String  @unique
-
-  // One team -> one captain
-  captainId Int
-  captain   User    @relation("TeamCaptain", fields: [captainId], references: [id])
-
-  // One team -> many members
-  members   User[]  @relation("TeamMembers")
-
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  tag           String         @unique
+  captainId     Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   registrations Registration[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  captain       User           @relation("TeamCaptain", fields: [captainId], references: [id])
+  members       User[]         @relation("TeamMembers")
 }
 
 model Registration {
-  id            Int      @id @default(autoincrement())
-
-  tournamentId  Int
-  tournament    Tournament @relation(fields: [tournamentId], references: [id])
-
-  // SOLO registration
-  playerId      Int?
-  player        User?    @relation(fields: [playerId], references: [id])
-
-  // TEAM registration
-  teamId        Int?
-  team          Team?    @relation(fields: [teamId], references: [id])
-
-  status        RegistrationStatus
-
-  registeredAt  DateTime @default(now())
-  confirmedAt   DateTime?
+  id           Int                @id @default(autoincrement())
+  tournamentId Int
+  playerId     Int?
+  teamId       Int?
+  status       RegistrationStatus @default(PENDING)
+  registeredAt DateTime           @default(now())
+  confirmedAt  DateTime?
+  team         Team?              @relation(fields: [teamId], references: [id])
+  player       User?              @relation(fields: [playerId], references: [id])
+  tournament   Tournament         @relation(fields: [tournamentId], references: [id])
 
   @@index([tournamentId])
 }
+
+
