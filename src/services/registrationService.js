@@ -7,7 +7,7 @@ export const findAll = async tournamentId => {
   })
 }
 
-export const create = async (tournamentId, user, data) => {
+export const create = async (tournamentId, data) => {
   const tournament = await prisma.tournament.findUnique({
     where: { id: tournamentId },
   })
@@ -46,7 +46,7 @@ export const create = async (tournamentId, user, data) => {
   })
 }
 
-export const update = async (id, user, data) => {
+export const update = async (id, data) => {
   const registration = await prisma.registration.findUnique({ where: { id } })
 
   if (!registration) {
@@ -59,7 +59,7 @@ export const update = async (id, user, data) => {
   })
 }
 
-export const remove = async (id, user) => {
+export const remove = async (id) => {
   const registration = await prisma.registration.findUnique({ where: { id } })
 
   if (!registration || registration.status !== 'PENDING') {

@@ -25,14 +25,23 @@ import { registerSchema, loginSchema } from '../models/authSchema.js'
  *           example: PLAYER
  *     AuthInput:
  *       type: object
- *       required: [email, password]
+ *       required: [email, username, password]
  *       properties:
  *         email:
  *           type: string
  *           example: user@mail.com
+ *         username:
+ *           type: string
+ *           example: player_one
  *         password:
  *           type: string
  *           example: Password123
+ *       securitySchemes:
+ *        bearerAuth:
+ *          type: http
+ *          scheme: bearer
+ *          bearerFormat: JWT
+ * 
  */
 
 const router = express.Router()
@@ -91,6 +100,7 @@ router.post('/login', validate(loginSchema), authController.login)
  *       401:
  *         description: Not authenticated
  */
+
 router.get('/profile', authenticate, authController.getProfile)
 
 export default router

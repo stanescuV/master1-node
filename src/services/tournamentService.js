@@ -43,7 +43,7 @@ export const create = async (userId, data) => {
   })
 }
 
-export const update = async (id, userId, data) => {
+export const update = async (id, data) => {
   const tournament = await findById(id)
 
   if (['COMPLETED', 'CANCELLED'].includes(tournament.status)) {
@@ -58,8 +58,7 @@ export const update = async (id, userId, data) => {
   })
 }
 
-export const remove = async (id, userId) => {
-  const tournament = await findById(id)
+export const remove = async (id) => {
 
   const confirmed = await prisma.registration.count({
     where: { tournamentId: id, status: 'CONFIRMED' },
@@ -74,7 +73,7 @@ export const remove = async (id, userId) => {
   await prisma.tournament.delete({ where: { id } })
 }
 
-export const updateStatus = async (id, user, status) => {
+export const updateStatus = async (id, status) => {
   const tournament = await findById(id)
 
   if (status === 'OPEN' && tournament.startDate <= new Date()) {
