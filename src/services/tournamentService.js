@@ -43,10 +43,16 @@ export const create = async (userId, data) => {
   })
 }
 
-export const update = async (id, data) => {
+export const update = async (id, user, data) => {
   const tournament = await findById(id)
 
-  if (['COMPLETED', 'CANCELLED'].includes(tournament.status)) {
+  if (user.role !== 'ADMIN' && tournament.organizerId !== user.userId) {
+    const error = new Error('Accès interdit')
+    error.status = 403
+    throw error
+  }
+
+  if (['COMPLETED', 'CANCELED'].includes(tournament.status)) {
     const error = new Error('Tournoi non modifiable')
     error.status = 409
     throw error
@@ -58,7 +64,14 @@ export const update = async (id, data) => {
   })
 }
 
-export const remove = async (id) => {
+export const remove = async (id, user) => {
+  const tournament = await findById(id)
+
+  if (user.role !== 'ADMIN' && tournament.organizerId !== user.userId) {
+    const error = new Error('Accès interdit')
+    error.status = 403
+    throw error
+  }
 
   const confirmed = await prisma.registration.count({
     where: { tournamentId: id, status: 'CONFIRMED' },
@@ -73,8 +86,14 @@ export const remove = async (id) => {
   await prisma.tournament.delete({ where: { id } })
 }
 
-export const updateStatus = async (id, status) => {
+export const updateStatus = async (id, user, status) => {
   const tournament = await findById(id)
+
+  if (user.role !== 'ADMIN' && tournament.organizerId !== user.userId) {
+    const error = new Error('Accès interdit')
+    error.status = 403
+    throw error
+  }
 
   if (status === 'OPEN' && tournament.startDate <= new Date()) {
     throw Object.assign(new Error('La date de début doit être future'), { status: 400 })

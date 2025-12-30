@@ -4,9 +4,6 @@
  * @param {any} data - Data to return
  * @returns {{ success: true, data: any }}
  */
-
-// Suggestion, mettre res comme parametre pour gérer le status code directement ici. Eviter le res.status(201).json(...) dans les controllers
-// avoir juste response.created(res, team) / response.success(res, team) / response.error(res, 'message', 400) 
 export const success = data => ({
   success: true,
   data,

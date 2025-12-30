@@ -1,6 +1,6 @@
 import express from 'express';
 import * as tournamentController from '../controllers/tournamentController.js';
-import { tournamentSchema } from '../models/tournamentSchema.js';
+import { tournamentSchema, tournamentStatusSchema } from '../models/tournamentSchema.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { authorize } from '../middlewares/authorize.js';
 import { validate } from '../middlewares/validate.js';
@@ -49,7 +49,7 @@ import { validate } from '../middlewares/validate.js';
  *           example: 2025-02-03T18:00:00.000Z
  *         status:
  *           type: string
- *           enum: [DRAFT, OPEN, ONGOING, COMPLETED, CANCELLED]
+ *           enum: [DRAFT, OPEN, ONGOING, COMPLETED, CANCELED]
  *           example: DRAFT
  *         organizerId:
  *           type: integer
@@ -102,7 +102,7 @@ import { validate } from '../middlewares/validate.js';
  *       properties:
  *         status:
  *           type: string
- *           enum: [DRAFT, OPEN, ONGOING, COMPLETED, CANCELLED]
+ *           enum: [DRAFT, OPEN, ONGOING, COMPLETED, CANCELED]
  *           example: OPEN
  *
  *     Error:
@@ -130,19 +130,37 @@ const router = express.Router();
  *         name: status
  *         schema:
  *           type: string
- *           enum: [DRAFT, OPEN, ONGOING, COMPLETED, CANCELLED]
+ *           enum: [DRAFT, OPEN, ONGOING, COMPLETED, CANCELED]
+ *         description: Filter by tournament status
  *       - in: query
  *         name: game
  *         schema:
  *           type: string
+ *         description: Filter by game name
  *       - in: query
  *         name: format
  *         schema:
  *           type: string
  *           enum: [SOLO, TEAM]
+ *         description: Filter by tournament format
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: List of tournaments
+ *         description: List of tournaments with pagination info
  *         content:
  *           application/json:
  *             schema:
@@ -156,7 +174,12 @@ const router = express.Router();
  *                   properties:
  *                     total:
  *                       type: integer
- *                       example: 2
+ *                       description: Total number of tournaments matching the filters
+ *                       example: 25
+ *                     page:
+ *                       type: integer
+ *                       description: Current page number
+ *                       example: 1
  *                     data:
  *                       type: array
  *                       items:
@@ -331,7 +354,8 @@ router.delete(
 router.patch(
   '/:id/status',
   authenticate,
-  validate(tournamentSchema),
+  authorize('ORGANIZER', 'ADMIN'),
+  validate(tournamentStatusSchema),
   tournamentController.updateStatus
 );
 

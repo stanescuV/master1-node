@@ -80,7 +80,9 @@ export const getUserById = async id => {
   })
 
   if (!user) {
-    return null
+    const error = new Error('Utilisateur non trouvé')
+    error.status = 404
+    throw error
   }
 
   const { password: _, ...userWithoutPassword } = user

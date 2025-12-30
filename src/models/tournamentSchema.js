@@ -42,3 +42,10 @@ export const tournamentSchema = z
       path: ['endDate'],
     }
   )
+
+export const tournamentStatusSchema = z.object({
+  status: z.enum(['DRAFT', 'OPEN', 'ONGOING', 'COMPLETED', 'CANCELED'], {
+    required_error: 'Le statut est requis',
+    invalid_type_error: 'Le statut doit être DRAFT, OPEN, ONGOING, COMPLETED ou CANCELED',
+  }),
+})

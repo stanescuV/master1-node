@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(ADMIN_TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc2NzEzNDg1MiwiZXhwIjoxNzY3MjIxMjUyfQ.AmpLEKEV1kt8LyTQq-YW8AN0xr7L6js_GJXKjG3SrSc\")",
+      "Bash(TESTUSER_TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsInJvbGUiOiJQTEFZRVIiLCJpYXQiOjE3NjcxMzU0OTMsImV4cCI6MTc2NzIyMTg5M30.0NF_yKOn0JQBi7_W-jAQ4tXIWKxufWtKNtBnjKoKnkM\")"
+    ]
+  }
+}

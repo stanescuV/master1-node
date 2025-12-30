@@ -7,6 +7,11 @@ import { registerSchema, loginSchema } from '../models/authSchema.js'
 /**
  * @swagger
  * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  *   schemas:
  *     User:
  *       type: object
@@ -22,26 +27,68 @@ import { registerSchema, loginSchema } from '../models/authSchema.js'
  *           example: player_one
  *         role:
  *           type: string
+ *           enum: [PLAYER, ORGANIZER, ADMIN]
  *           example: PLAYER
- *     AuthInput:
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     RegisterInput:
  *       type: object
  *       required: [email, username, password]
  *       properties:
  *         email:
  *           type: string
+ *           format: email
  *           example: user@mail.com
  *         username:
  *           type: string
+ *           minLength: 3
+ *           maxLength: 20
+ *           pattern: '^[a-zA-Z0-9_]+$'
  *           example: player_one
  *         password:
  *           type: string
+ *           minLength: 8
  *           example: Password123
- *       securitySchemes:
- *        bearerAuth:
- *          type: http
- *          scheme: bearer
- *          bearerFormat: JWT
- * 
+ *         role:
+ *           type: string
+ *           enum: [PLAYER, ORGANIZER, ADMIN]
+ *           example: PLAYER
+ *
+ *     LoginInput:
+ *       type: object
+ *       required: [email, password]
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: user@mail.com
+ *         password:
+ *           type: string
+ *           example: Password123
+ *
+ *     LoginResponse:
+ *       type: object
+ *       properties:
+ *         user:
+ *           $ref: '#/components/schemas/User'
+ *         token:
+ *           type: string
+ *           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *
+ *     Error:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: false
+ *         error:
+ *           type: string
+ *           example: Email ou mot de passe incorrect
  */
 
 const router = express.Router()
@@ -57,12 +104,26 @@ const router = express.Router()
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/AuthInput'
+ *             $ref: '#/components/schemas/RegisterInput'
  *     responses:
  *       201:
- *         description: User registered
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
  *       400:
- *         description: Validation error
+ *         description: Validation error or email/username already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/register', validate(registerSchema), authController.register)
 
@@ -77,12 +138,26 @@ router.post('/register', validate(registerSchema), authController.register)
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/AuthInput'
+ *             $ref: '#/components/schemas/LoginInput'
  *     responses:
  *       200:
- *         description: JWT token
+ *         description: Login successful, returns user data and JWT token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/LoginResponse'
  *       401:
  *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/login', validate(loginSchema), authController.login)
 
@@ -96,9 +171,29 @@ router.post('/login', validate(loginSchema), authController.login)
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User profile
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Not authenticated
+ *         description: Not authenticated or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 
 router.get('/profile', authenticate, authController.getProfile)

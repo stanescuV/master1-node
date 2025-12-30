@@ -36,7 +36,7 @@ export const create = asyncHandler(async (req, res) => {
  */
 export const update = asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id)
-  const tournament = await tournamentService.update(id, req.user.userId, req.body)
+  const tournament = await tournamentService.update(id, req.user, req.body)
   res.json(response.success(tournament))
 })
 
@@ -46,7 +46,7 @@ export const update = asyncHandler(async (req, res) => {
  */
 export const remove = asyncHandler(async (req, res) => {
   const id = parseInt(req.params.id)
-  await tournamentService.remove(id, req.user.userId)
+  await tournamentService.remove(id, req.user)
   res.status(204).send()
 })
 
