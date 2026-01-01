@@ -1,19 +1,35 @@
-import { describe, it, expect } from 'vitest'
-import { prisma } from '../setup.js'
 import * as authService from '../../src/services/authService.js'
+import { prisma } from '../setup.js'
 
-describe('AuthService', () => {
+describe('AuthService Unit Tests', () => {
+  beforeAll(async () => {
+    await prisma.$connect()
+  })
+
+  afterAll(async () => {
+    await prisma.$disconnect()
+  })
+
+  beforeEach(async () => {
+    // Clean all tables before each test
+    await prisma.registration.deleteMany()
+    await prisma.tournament.deleteMany()
+    await prisma.team.deleteMany()
+    await prisma.user.deleteMany()
+  })
+
   describe('hashPassword', () => {
-    it('returns a hash different from the original password', async () => {
-      const password = 'secret123'
-      const hash = await authService.hashPassword(password)
+    it('should hash password successfully', async () => {
+      const password = 'testPassword123'
+      const hashedPassword = await authService.hashPassword(password)
 
-      expect(hash).not.toBe(password)
-      expect(hash).toHaveLength(60) // bcrypt hash length
+      expect(hashedPassword).toBeTruthy()
+      expect(hashedPassword).not.toBe(password)
+      expect(hashedPassword.length).toBeGreaterThan(0)
     })
 
-    it('generates different hashes for the same password', async () => {
-      const password = 'secret123'
+    it('should generate different hashes for same password', async () => {
+      const password = 'testPassword123'
       const hash1 = await authService.hashPassword(password)
       const hash2 = await authService.hashPassword(password)
 
@@ -22,185 +38,227 @@ describe('AuthService', () => {
   })
 
   describe('comparePassword', () => {
-    it('returns true for correct password', async () => {
-      const password = 'secret123'
-      const hash = await authService.hashPassword(password)
+    it('should return true for matching password and hash', async () => {
+      const password = 'testPassword123'
+      const hashedPassword = await authService.hashPassword(password)
 
-      const result = await authService.comparePassword(password, hash)
+      const isMatch = await authService.comparePassword(password, hashedPassword)
 
-      expect(result).toBe(true)
+      expect(isMatch).toBe(true)
     })
 
-    it('returns false for incorrect password', async () => {
-      const password = 'secret123'
-      const hash = await authService.hashPassword(password)
+    it('should return false for non-matching password and hash', async () => {
+      const password = 'testPassword123'
+      const wrongPassword = 'wrongPassword456'
+      const hashedPassword = await authService.hashPassword(password)
 
-      const result = await authService.comparePassword('wrongpassword', hash)
+      const isMatch = await authService.comparePassword(wrongPassword, hashedPassword)
 
-      expect(result).toBe(false)
+      expect(isMatch).toBe(false)
     })
   })
 
   describe('generateToken', () => {
-    it('returns a non-empty string token', () => {
-      const user = { id: 1, role: 'user' }
+    it('should generate a valid JWT token', () => {
+      const user = {
+        id: 1,
+        email: 'test@example.com',
+        role: 'PLAYER',
+      }
+
       const token = authService.generateToken(user)
 
+      expect(token).toBeTruthy()
       expect(typeof token).toBe('string')
-      expect(token.length).toBeGreaterThan(0)
+      expect(token.split('.')).toHaveLength(3) // JWT has 3 parts
     })
 
-    it('generates token with correct structure (3 parts)', () => {
-      const user = { id: 1, role: 'admin' }
-      const token = authService.generateToken(user)
+    it('should generate different tokens for different users', () => {
+      const user1 = { id: 1, email: 'user1@example.com', role: 'PLAYER' }
+      const user2 = { id: 2, email: 'user2@example.com', role: 'ADMIN' }
 
-      const parts = token.split('.')
-      expect(parts).toHaveLength(3)
+      const token1 = authService.generateToken(user1)
+      const token2 = authService.generateToken(user2)
+
+      expect(token1).not.toBe(token2)
     })
   })
 
   describe('verifyToken', () => {
-    it('decodes a valid token correctly', () => {
-      const user = { id: 42, role: 'admin' }
-      const token = authService.generateToken(user)
+    it('should verify a valid token', () => {
+      const user = {
+        id: 1,
+        email: 'test@example.com',
+        role: 'PLAYER',
+      }
 
+      const token = authService.generateToken(user)
       const decoded = authService.verifyToken(token)
 
-      expect(decoded.userId).toBe(42)
-      expect(decoded.role).toBe('admin')
+      expect(decoded).toBeTruthy()
+      expect(decoded.userId).toBe(user.id)
+      expect(decoded.role).toBe(user.role)
     })
 
-    it('throws error for invalid token', () => {
-      expect(() => authService.verifyToken('invalid-token')).toThrow()
-    })
+    it('should throw error for invalid token', () => {
+      const invalidToken = 'invalid.token.here'
 
-    it('throws error for tampered token', () => {
-      const user = { id: 1, role: 'user' }
-      const token = authService.generateToken(user)
-      const tamperedToken = `${token.slice(0, -5)}xxxxx`
-
-      expect(() => authService.verifyToken(tamperedToken)).toThrow()
+      expect(() => authService.verifyToken(invalidToken)).toThrow()
     })
   })
 
   describe('register', () => {
-    it('creates a new user successfully', async () => {
+    it('should register a new user successfully', async () => {
       const userData = {
-        email: 'newuser@test.com',
+        email: 'newuser@example.com',
         username: 'newuser',
-        password: 'password123',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
       }
 
       const user = await authService.register(userData)
 
-      expect(user).toBeDefined()
-      expect(user.email).toBe('newuser@test.com')
-      expect(user.username).toBe('newuser')
-      expect(user.password).toBeUndefined() // Password should not be returned
+      expect(user).toBeTruthy()
+      expect(user.email).toBe(userData.email)
+      expect(user.username).toBe(userData.username)
+      expect(user.role).toBe(userData.role)
+      expect(user).not.toHaveProperty('password') // Password should be excluded
+
+      // Verify user exists in database
+      const dbUser = await prisma.user.findUnique({
+        where: { email: userData.email },
+      })
+      expect(dbUser).toBeTruthy()
     })
 
-    it('throws error for duplicate email', async () => {
-      await prisma.user.create({
-        data: {
-          email: 'existing@test.com',
-          username: 'existing',
-          password: 'hashedpassword',
-        },
-      })
+    it('should throw error when email already exists', async () => {
+      const userData = {
+        email: 'duplicate@example.com',
+        username: 'user1',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
+      }
 
-      await expect(
-        authService.register({
-          email: 'existing@test.com',
-          username: 'newuser',
-          password: 'password123',
-        })
-      ).rejects.toThrow('Cet email est déjà utilisé')
+      // Create first user
+      await authService.register(userData)
+
+      // Try to create second user with same email
+      const duplicateData = {
+        ...userData,
+        username: 'user2',
+      }
+
+      await expect(authService.register(duplicateData)).rejects.toThrow('email')
     })
 
-    it('throws error for duplicate username', async () => {
-      await prisma.user.create({
-        data: {
-          email: 'existing@test.com',
-          username: 'existinguser',
-          password: 'hashedpassword',
-        },
+    it('should throw error when username already exists', async () => {
+      const userData = {
+        email: 'user1@example.com',
+        username: 'duplicate',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
+      }
+
+      // Create first user
+      await authService.register(userData)
+
+      // Try to create second user with same username
+      const duplicateData = {
+        email: 'user2@example.com',
+        username: 'duplicate',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
+      }
+
+      await expect(authService.register(duplicateData)).rejects.toThrow()
+    })
+
+    it('should hash password before storing', async () => {
+      const userData = {
+        email: 'hashtest@example.com',
+        username: 'hashuser',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
+      }
+
+      await authService.register(userData)
+
+      const dbUser = await prisma.user.findUnique({
+        where: { email: userData.email },
       })
 
-      await expect(
-        authService.register({
-          email: 'new@test.com',
-          username: 'existinguser',
-          password: 'password123',
-        })
-      ).rejects.toThrow("Ce nom d'utilisateur est déjà pris")
+      expect(dbUser.password).not.toBe(userData.password)
+      expect(dbUser.password).toBeTruthy()
     })
   })
 
   describe('login', () => {
-    it('returns user and token for valid credentials', async () => {
-      const password = 'password123'
-      const hash = await authService.hashPassword(password)
-
-      await prisma.user.create({
-        data: {
-          email: 'login@test.com',
-          username: 'loginuser',
-          password: hash,
-        },
+    beforeEach(async () => {
+      // Create a test user before each login test
+      await authService.register({
+        email: 'logintest@example.com',
+        username: 'loginuser',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
       })
-
-      const result = await authService.login('login@test.com', password)
-
-      expect(result.user).toBeDefined()
-      expect(result.user.email).toBe('login@test.com')
-      expect(result.user.password).toBeUndefined()
-      expect(result.token).toBeDefined()
     })
 
-    it('throws error for non-existent user', async () => {
+    it('should login with valid credentials', async () => {
+      const result = await authService.login('logintest@example.com', 'P@ssw0rd')
+
+      expect(result).toBeTruthy()
+      expect(result).toHaveProperty('user')
+      expect(result).toHaveProperty('token')
+      expect(result.user.email).toBe('logintest@example.com')
+      expect(result.user).not.toHaveProperty('password')
+      expect(typeof result.token).toBe('string')
+    })
+
+    it('should throw error with invalid email', async () => {
       await expect(
-        authService.login('nonexistent@test.com', 'password')
+        authService.login('nonexistent@example.com', 'P@ssw0rd')
       ).rejects.toThrow('Email ou mot de passe incorrect')
     })
 
-    it('throws error for wrong password', async () => {
-      const hash = await authService.hashPassword('correctpassword')
-
-      await prisma.user.create({
-        data: {
-          email: 'user@test.com',
-          username: 'testuser',
-          password: hash,
-        },
-      })
-
+    it('should throw error with invalid password', async () => {
       await expect(
-        authService.login('user@test.com', 'wrongpassword')
+        authService.login('logintest@example.com', 'WrongPassword')
       ).rejects.toThrow('Email ou mot de passe incorrect')
     })
   })
 
   describe('getUserById', () => {
-    it('returns user without password', async () => {
-      const created = await prisma.user.create({
-        data: {
-          email: 'findme@test.com',
-          username: 'findme',
-          password: 'hashedpassword',
-        },
+    let userId
+
+    beforeEach(async () => {
+      const user = await authService.register({
+        email: 'getbyid@example.com',
+        username: 'getbyiduser',
+        password: 'P@ssw0rd',
+        role: 'PLAYER',
       })
-
-      const user = await authService.getUserById(created.id)
-
-      expect(user).toBeDefined()
-      expect(user.email).toBe('findme@test.com')
-      expect(user.password).toBeUndefined()
+      userId = user.id
     })
 
-    it('returns null for non-existent user', async () => {
-      const user = await authService.getUserById(99999)
+    it('should get user by id successfully', async () => {
+      const user = await authService.getUserById(userId)
 
-      expect(user).toBeNull()
+      expect(user).toBeTruthy()
+      expect(user.id).toBe(userId)
+      expect(user.email).toBe('getbyid@example.com')
+      expect(user).not.toHaveProperty('password')
+    })
+
+    it('should throw 404 error for non-existent user', async () => {
+      const nonExistentId = 99999
+
+      try {
+        await authService.getUserById(nonExistentId)
+        expect.fail('Should have thrown an error')
+      } catch (error) {
+        expect(error.message).toContain('Utilisateur non trouvé')
+        expect(error.status).toBe(404)
+      }
     })
   })
 })

@@ -24,7 +24,7 @@ export const verifyToken = token => {
 }
 
 export const register = async userData => {
-  const { email, username, password } = userData
+  const { email, username, password, role } = userData
 
   const existingUser = await prisma.user.findFirst({
     where: {
@@ -33,10 +33,13 @@ export const register = async userData => {
   })
 
   if (existingUser) {
-    if (existingUser.email === email) {
-      throw new Error('Cet email est déjà utilisé')
-    }
-    throw new Error("Ce nom d'utilisateur est déjà pris")
+    const error = new Error(
+      existingUser.email === email
+        ? 'Cet email est déjà utilisé'
+        : "Ce nom d'utilisateur est déjà pris"
+    )
+    error.status = 400
+    throw error
   }
 
   const hashedPassword = await hashPassword(password)
@@ -46,6 +49,7 @@ export const register = async userData => {
       email,
       username,
       password: hashedPassword,
+      ...(role && { role }),
     },
   })
 
@@ -59,13 +63,17 @@ export const login = async (email, password) => {
   })
 
   if (!user) {
-    throw new Error('Email ou mot de passe incorrect')
+    const error = new Error('Email ou mot de passe incorrect')
+    error.status = 400
+    throw error
   }
 
   const isValid = await comparePassword(password, user.password)
 
   if (!isValid) {
-    throw new Error('Email ou mot de passe incorrect')
+    const error = new Error('Email ou mot de passe incorrect')
+    error.status = 400
+    throw error
   }
 
   const token = generateToken(user)
